@@ -5,6 +5,32 @@ var fs = require('fs'),
     async = require('async');
     require('./snippets');
 
+_.mixin({
+    // fn(original,newOne,anotherNewOne,...)
+    // works recursively for objects, not for arrays
+    deepDefaults: function(original, newObj) {
+        var key, result, value;
+        // TODO: make this work for more than one newObj
+        result = {};
+        for (key in original) {
+            value = original[key];
+            if ((newObj[key] != null) && _.isObject(value) && _.isObject(newObj[key])) {
+                result[key] = _.deepDefaults(value, newObj[key]);
+                continue;
+            }
+            result[key] = value;
+        }
+        for (key in newObj) {
+            value = newObj[key];
+            if (result[key] != null) {
+                continue;
+            }
+            result[key] = value;
+        }
+        return result;
+    }
+});
+
 var DBot = function() {
     
     /*** Load the DB ***/
@@ -191,7 +217,7 @@ DBot.prototype.reloadModules = function() {
                 this.status[name] = 'Error parsing config: ' + err + ' ' + err.stack.split('\n')[2].trim();
                 continue;
             }
-            this.config.modules[name] = _.defaults(this.config.modules[name], defaultConfig);
+            this.config.modules[name] = _.deepDefaults(this.config.modules[name], defaultConfig);
         }
         var config = this.config.modules[name];
 

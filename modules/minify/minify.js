@@ -11,7 +11,6 @@ var minify = function(dbot) {
     // This is where you provide support for new minifiers
     // callback(miniURL, error);
     // this.config contains only the configuration options for the given minifier
-    // example: if your minifier is "bitly" then this.config.myvalue = config.json entry "minifiers-bitly-myvalue"
     this.minifiers = {
         'bitly': function(url, callback) {
             request({
@@ -99,18 +98,9 @@ var minify = function(dbot) {
     
     this.onLoad = function() {
         this.minifiers = _.mapObject(this.minifiers, function(m, mName) {
-            var minifierConfig = _.pick(this.config, function(v,k) { return k.startsWith("minifier-" + mName + "-"); });
-            minifierConfig = _.reduce(minifierConfig, function(r,v,k) {
-                var tlk = "minifier-" + mName + "-";
-                var tlkl = tlk.length;
-                var nk = k.slice(tlkl);
-                r[nk] = v;
-                return r;
-            }, { });
-            
             var minifier = {
                 name: mName,
-                config: minifierConfig
+                config: this.config.minifiers[mName]
             }
             
             return m.bind(minifier);
